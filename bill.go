@@ -40,7 +40,7 @@ func (b *bill) format() string {
 }
 
 // update bill
-func (b *bill) updateBill(tip float64) {
+func (b *bill) updateTip(tip float64) {
 	// When working with structs we dont need to dereference the pointer. Go automatically does it for us.
 	// (*b).tip= tip
 
