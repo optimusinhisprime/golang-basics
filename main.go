@@ -1,76 +1,46 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
+	"log"
+	"net/http"
 )
 
-func getInput(r *bufio.Reader, prompt string) (string, error) {
-	fmt.Print(prompt)
-	input, err := r.ReadString('\n')
-
-	return strings.TrimSpace(input), err
-
-}
-
-func createBill() bill {
-	reader := bufio.NewReader(os.Stdin)
-
-	name, _ := getInput(reader, "Create a new bill name: ")
-
-	b := newBill(name)
-	fmt.Println("Created the new bill - ", name)
-
-	return b
-
-}
-
-func promptOptions(b bill) {
-	reader := bufio.NewReader(os.Stdin)
-
-	opt, _ := getInput(reader, "Choose option (a - add item, s - save bill, t - add tip): ")
-
-	switch opt {
-	case "a":
-		name, _ := getInput(reader, "Item Name: ")
-		price, _ := getInput(reader, "Item Price: ")
-
-		p, err := strconv.ParseFloat(price, 64)
-		if err != nil {
-			fmt.Println("The price must be a number.")
-			promptOptions(b)
-		}
-		b.addItem(name, p)
-		fmt.Println("Item added -", name, p)
-		promptOptions(b)
-
-	case "s":
-		b.saveBill()
-		fmt.Println("You saved the bill file.")
-	case "t":
-		tip, _ := getInput(reader, "Enter tip amount: ")
-
-		t, err := strconv.ParseFloat(tip, 64)
-		if err != nil {
-			fmt.Println("The tip must be a number.")
-			promptOptions(b)
-		}
-		b.updateTip(t)
-		fmt.Println("Tip has been updated - ", t)
-		promptOptions(b)
-
-	default:
-		fmt.Println("That was not a valid option.")
-		promptOptions(b)
+func formHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		fmt.Fprintf(w, "ParseForm failed: %v", err)
+		return
 	}
+
+	fmt.Fprintf(w, "POST request successful \n")
+	name := r.FormValue("name")
+	password := r.FormValue("password")
+
+	fmt.Fprintf(w, "Name: %v Password: %v \n", name, password)
+}
+
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/hello" {
+		http.Error(w, "404 not found", http.StatusNotFound)
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed.", http.StatusNotFound)
+	}
+
+	fmt.Fprintf(w, "Hello")
 }
 
 func main() {
+	//we will be using this to server or html pages to the client.
+	fileServer := http.FileServer(http.Dir("./static"))
+	http.Handle("/", fileServer)
+	http.HandleFunc("/form", formHandler)
+	http.HandleFunc("/hello", helloHandler)
 
-	myBill := createBill()
-	promptOptions(myBill)
+	fmt.Println("Starting the server at port 8080")
 
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
