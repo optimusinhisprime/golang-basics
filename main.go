@@ -32,7 +32,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	//we will be using this to server or html pages to the client.
+	//we will be using this to serve our html pages to the client.
 	fileServer := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fileServer)
 	http.HandleFunc("/form", formHandler)
